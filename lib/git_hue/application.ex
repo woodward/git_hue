@@ -6,7 +6,7 @@ defmodule GitHue.Application do
   @impl true
   def start(_type, _args) do
     children = [
-      # {Finch, name: HTTP, pools: finch_pools}
+      GitHue.GitHubMonitor
     ]
 
     opts = [strategy: :one_for_one, name: GitHue.Supervisor]
