@@ -2,7 +2,7 @@ defmodule GitHue.GitHubMonitor do
   @moduledoc false
   use GenServer
 
-  alias GitHue.Hue
+  alias GitHue.HueAPI
 
   def start_link(args \\ []) do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
@@ -11,7 +11,7 @@ defmodule GitHue.GitHubMonitor do
   @impl true
   def init(_args) do
     # Process.send_after(self(), :check_github, 1_000)
-    # bridge = Hue.get_bridge()
+    # bridge = HueAPI.get_bridge()
 
     # {:ok, lights} = HueSDK.API.Lights.get_all_lights(bridge)
     # light = Enum.find(lights, fn {_, light_data} -> light_data["name"] == "github" end)

@@ -1,4 +1,4 @@
-defmodule GitHue.Hue do
+defmodule GitHue.HueAPI do
   @moduledoc false
 
   def get_bridge do
