@@ -1,5 +1,6 @@
 defmodule GitHue.Application do
   @moduledoc false
+  require Config
 
   use Application
 

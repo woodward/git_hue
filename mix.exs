@@ -23,7 +23,8 @@ defmodule GitHue.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:hue_sdk, "~> 0.1.0"}
+      {:hue_sdk, "~> 0.1.0"},
+      {:req, "~> 0.3.0"}
     ]
   end
 end
