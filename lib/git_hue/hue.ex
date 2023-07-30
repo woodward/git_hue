@@ -4,7 +4,7 @@ defmodule GitHue.Hue do
   def get_bridge do
     # {:manual_ip, [bridge]} = HueSDK.Discovery.discover(HueSDK.Discovery.ManualIP, ip_address: "10.0.1.16")
     {:nupnp, [bridge]} = HueSDK.Discovery.discover(HueSDK.Discovery.NUPNP)
-    HueSDK.Bridge.authenticate(bridge, git_hue_unique_identifier())
+    HueSDK.Bridge.authenticate(bridge, HUE_UNIQUE_IDENTIFIER())
   end
 
   def set_color(bridge, light_id, :green) do
@@ -21,7 +21,7 @@ defmodule GitHue.Hue do
     # HueSDK.API.Lights.set_light_state(bridge, light_id, %{on: true, hue: 10761, sat: 254, bri: 254})
   end
 
-  defp git_hue_unique_identifier do
+  defp HUE_UNIQUE_IDENTIFIER do
     Application.get_env(:git_hue, :unique_identifier)
   end
 end
