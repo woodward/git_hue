@@ -11,7 +11,7 @@ defmodule GitHue.GitHubMonitor do
   @impl true
   def init(_args) do
     # Process.send_after(self(), :check_github, 1_000)
-    # bridge = HueAPI.get_bridge()
+    # bridge = HueAPI.get_bridge(hue_unique_identifier())
 
     # {:ok, lights} = HueSDK.API.Lights.get_all_lights(bridge)
     # light = Enum.find(lights, fn {_, light_data} -> light_data["name"] == "github" end)
@@ -24,5 +24,9 @@ defmodule GitHue.GitHubMonitor do
   def handle_info(:check_github, state) do
     Process.send_after(self(), :check_github, 1_000)
     {:noreply, state}
+  end
+
+  defp hue_unique_identifier do
+    Application.get_env(:git_hue, :unique_identifier)
   end
 end
