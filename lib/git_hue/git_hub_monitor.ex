@@ -16,7 +16,7 @@ defmodule GitHue.GitHubMonitor do
     Logger.info("bridge: #{inspect(bridge)}")
 
     {:ok, lights} = HueSDK.API.Lights.get_all_lights(bridge)
-    {light_id, light_info} = Enum.find(lights, fn {_, light_data} -> light_data["name"] == "github" end)
+    {light_id, light_info} = Enum.find(lights, fn {_, light_data} -> light_data["name"] == hue_light_name() end)
     Logger.info("light_id: #{inspect(light_id)}")
     Logger.info("light_info: #{inspect(light_info)}")
 
@@ -38,6 +38,7 @@ defmodule GitHue.GitHubMonitor do
 
   defp hue_unique_identifier, do: Application.get_env(:git_hue, :hue_unique_identifier)
   defp hue_bridge_ip_address, do: Application.get_env(:git_hue, :hue_bridge_ip_address)
+  defp hue_light_name, do: Application.get_env(:git_hue, :hue_light_name)
 
   defp github_owner_repo, do: Application.get_env(:git_hue, :github_owner_repo)
   defp github_personal_access_token, do: Application.get_env(:git_hue, :github_personal_access_token)

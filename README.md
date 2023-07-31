@@ -15,8 +15,12 @@ There are a number of environment variables to configure; see `.envrc` for a des
 * `git clone git@github.com:woodward/git_hue.git`
 * `cd git_hue`
 * `mix deps.get`
-* Configure the environment variables in `.envrc`` (adding private values to `.local/envrc`)
-* Press the "link" button on top of the Hue Bridge (i.e., the big button on top)
+* In the Hue app on your phone, you'll need to give the light a recognizable name (which goes into the
+  environment variable HUE_LIGHT_NAME)
+* You'll need to get a [GitHub personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens)
+  which will be set in the environment variable GITHUB_PERSONAL_ACCESS_TOKEN
+* Configure the rest of the environment variables in `.envrc`` (adding private values to `.local/envrc`)
+* **IMPORTANT** Press the "link" button on top of the Hue Bridge (i.e., the big button on top)
 * `iex -S mix`
   
 The light should change based on the status of your GitHub action  
