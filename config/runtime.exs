@@ -9,4 +9,5 @@ config :git_hue,
   github_polling_interval_sec: System.get_env("GITHUB_POLLING_INTERVAL_SEC") |> String.to_integer(),
   github_personal_access_token: System.get_env("GITHUB_PERSONAL_ACCESS_TOKEN"),
   github_owner_repo: System.get_env("GITHUB_OWNER_REPO"),
-  github_ci_job_name: System.get_env("GITHUB_CI_JOB_NAME")
+  github_ci_job_name: System.get_env("GITHUB_CI_JOB_NAME"),
+  start_github_monitor_automatically?: config_env() != :test
