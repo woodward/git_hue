@@ -12,11 +12,12 @@ defmodule GitHue.GitHubMonitor do
   @impl true
   def init(_args) do
     Process.send_after(self(), :check_github, 100)
+
     bridge = HueAPI.get_bridge(hue_unique_identifier(), hue_bridge_ip_address())
     Logger.info("bridge: #{inspect(bridge)}")
 
     {:ok, lights} = HueSDK.API.Lights.get_all_lights(bridge)
-    {light_id, light_info} = Enum.find(lights, fn {_, light_data} -> light_data["name"] == hue_light_name() end)
+    {light_id, light_info} = HueAPI.find_light_by_name(lights, hue_light_name())
     Logger.info("light_id: #{inspect(light_id)}")
     Logger.info("light_info: #{inspect(light_info)}")
 

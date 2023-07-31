@@ -27,4 +27,8 @@ defmodule GitHue.HueAPI do
     HueSDK.API.Lights.set_light_state(bridge, light_id, %{on: true, hue: 10761, sat: 254, bri: 254, alert: "lselect"})
     # HueSDK.API.Lights.set_light_state(bridge, light_id, %{on: true, hue: 10761, sat: 254, bri: 254})
   end
+
+  def find_light_by_name(lights, name) do
+    Enum.find(lights, fn {_, light_data} -> light_data["name"] == name end)
+  end
 end
