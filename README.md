@@ -1,11 +1,11 @@
 # GitHue
 
-** Description
+## Description
 
 GitHue uses the Elixir [HueSDK](https://github.com/connorlay/hue_sdk) and the 
 [GitHub API](https://docs.github.com/en/rest?apiVersion=2022-11-28) to change the color of a Philips Hue
-light based on the status of continuous integration (or CI).  The light will be set to green if the build
-was succsessful, yellow if the build is running, and red if the build fails.
+light based on the status of a GitHub actions continuous integration build (or CI).  The light will 
+be set to green if the build is succsessful, yellow if the build is running, and red if the build fails.
 
 
 ## Installation and Usage
