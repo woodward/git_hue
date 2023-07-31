@@ -1,9 +1,16 @@
 defmodule GitHue.HueAPI do
   @moduledoc false
 
-  def get_bridge(hue_unique_identifier) do
-    # {:manual_ip, [bridge]} = HueSDK.Discovery.discover(HueSDK.Discovery.ManualIP, ip_address: "10.0.1.16")
-    {:nupnp, [bridge]} = HueSDK.Discovery.discover(HueSDK.Discovery.NUPNP)
+  def get_bridge(hue_unique_identifier, hue_ip_address \\ nil) do
+    bridge =
+      if hue_ip_address do
+        {:manual_ip, [bridge]} = HueSDK.Discovery.discover(HueSDK.Discovery.ManualIP, ip_address: hue_ip_address)
+        bridge
+      else
+        {:nupnp, [bridge]} = HueSDK.Discovery.discover(HueSDK.Discovery.NUPNP)
+        bridge
+      end
+
     HueSDK.Bridge.authenticate(bridge, hue_unique_identifier)
   end
 
