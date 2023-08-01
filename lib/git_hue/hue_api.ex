@@ -28,6 +28,8 @@ defmodule GitHue.HueAPI do
     # HueSDK.API.Lights.set_light_state(bridge, light_id, %{on: true, hue: 10761, sat: 254, bri: 254})
   end
 
+  def set_color(_bridge, _light_id, :unchanged), do: :ok
+
   def find_light_by_name(lights, name) do
     Enum.find(lights, fn {_, light_data} -> light_data["name"] == name end)
   end

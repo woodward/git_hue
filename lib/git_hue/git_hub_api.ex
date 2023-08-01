@@ -29,6 +29,7 @@ defmodule GitHue.GitHubAPI do
   def light_color(%{"conclusion" => "failure"} = _run), do: :red
   def light_color(%{"conclusion" => nil, "status" => "in_progress"} = _run), do: :yellow
   def light_color(%{"conclusion" => "success", "status" => "completed"} = _run), do: :green
+  def light_color(%{"conclusion" => nil, "status" => "queued"} = _run), do: :unchanged
 
   def light_color(run) do
     raise RuntimeError, "Unknown light color for #{inspect(run)}"

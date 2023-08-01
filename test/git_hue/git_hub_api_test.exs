@@ -45,5 +45,10 @@ defmodule GitHue.GitHubAPITest do
       run = %{"conclusion" => "failure", "id" => 5_697_406_496, "status" => "completed"}
       assert GitHubAPI.light_color(run) == :red
     end
+
+    test "returns :unchanged if the job is queued" do
+      run = %{"conclusion" => nil, "id" => 5_721_332_317, "status" => "queued"}
+      assert GitHubAPI.light_color(run) == :unchanged
+    end
   end
 end
