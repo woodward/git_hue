@@ -6,7 +6,7 @@ defmodule GitHue.GitHubAPITest do
 
   describe "extract_ci_runs" do
     test "gets the ci runs from all of the workflow runs" do
-      github_json = File.read!("test/fixtures/response.json") |> Jason.decode!()
+      github_json = File.read!("test/fixtures/github_response.json") |> Jason.decode!()
       workflow_runs = Map.get(github_json, "workflow_runs")
       assert length(workflow_runs) == 30
 
