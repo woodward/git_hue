@@ -3739,7 +3739,7 @@
       "id": 5686226403,
       "name": "Omni CI",
       "node_id": "WFR_kwLOJmwG088AAAABUuzt4w",
-      "head_branch": "main",
+      "head_branch": "something-other-than-main",
       "head_sha": "336549f1f7f67da869217f5e465d9d8e3513ee5e",
       "path": ".github/workflows/ci.yaml",
       "display_title": "Run scan after build-and-publish",

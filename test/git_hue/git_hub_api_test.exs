@@ -14,16 +14,21 @@ defmodule GitHue.GitHubAPITest do
       assert length(ci_runs) == 10
 
       expected_ci_runs = [
-        %{"conclusion" => nil, "id" => 5_708_095_112, "status" => "in_progress"},
-        %{"conclusion" => "success", "id" => 5_697_406_496, "status" => "completed"},
-        %{"conclusion" => "success", "id" => 5_697_212_538, "status" => "completed"},
-        %{"conclusion" => "success", "id" => 5_686_810_388, "status" => "completed"},
-        %{"conclusion" => "success", "id" => 5_686_275_839, "status" => "completed"},
-        %{"conclusion" => "success", "id" => 5_686_226_403, "status" => "completed"},
-        %{"conclusion" => "success", "id" => 5_685_984_611, "status" => "completed"},
-        %{"conclusion" => "success", "id" => 5_675_452_424, "status" => "completed"},
-        %{"conclusion" => "success", "id" => 5_674_818_299, "status" => "completed"},
-        %{"conclusion" => "success", "id" => 5_674_284_010, "status" => "completed"}
+        %{"conclusion" => nil, "id" => 5_708_095_112, "status" => "in_progress", "head_branch" => "main"},
+        %{"conclusion" => "success", "id" => 5_697_406_496, "status" => "completed", "head_branch" => "main"},
+        %{"conclusion" => "success", "id" => 5_697_212_538, "status" => "completed", "head_branch" => "main"},
+        %{"conclusion" => "success", "id" => 5_686_810_388, "status" => "completed", "head_branch" => "main"},
+        %{"conclusion" => "success", "id" => 5_686_275_839, "status" => "completed", "head_branch" => "main"},
+        %{
+          "conclusion" => "success",
+          "id" => 5_686_226_403,
+          "status" => "completed",
+          "head_branch" => "something-other-than-main"
+        },
+        %{"conclusion" => "success", "id" => 5_685_984_611, "status" => "completed", "head_branch" => "main"},
+        %{"conclusion" => "success", "id" => 5_675_452_424, "status" => "completed", "head_branch" => "main"},
+        %{"conclusion" => "success", "id" => 5_674_818_299, "status" => "completed", "head_branch" => "main"},
+        %{"conclusion" => "success", "id" => 5_674_284_010, "status" => "completed", "head_branch" => "main"}
       ]
 
       assert ci_runs == expected_ci_runs
@@ -50,5 +55,49 @@ defmodule GitHue.GitHubAPITest do
       run = %{"conclusion" => nil, "id" => 5_721_332_317, "status" => "queued"}
       assert GitHubAPI.light_color(run) == :unchanged
     end
+  end
+
+  describe "extract_runs_for_branch" do
+    test "by default gets the ci runs from all of the workflow runs" do
+      filtered_ci_runs = ci_runs() |> GitHubAPI.extract_runs_for_branch("")
+      assert length(filtered_ci_runs) == 4
+      expected_ci_runs = ci_runs()
+      assert filtered_ci_runs == expected_ci_runs
+    end
+
+    test "by default gets the ci runs from all of the workflow runs - also works for nil" do
+      filtered_ci_runs = ci_runs() |> GitHubAPI.extract_runs_for_branch(nil)
+      assert length(filtered_ci_runs) == 4
+      expected_ci_runs = ci_runs()
+      assert filtered_ci_runs == expected_ci_runs
+      assert filtered_ci_runs == expected_ci_runs
+    end
+
+    test "gets only the results for a particular branch" do
+      filtered_ci_runs = ci_runs() |> GitHubAPI.extract_runs_for_branch("main")
+      assert length(filtered_ci_runs) == 3
+
+      expected_ci_runs = [
+        %{"conclusion" => nil, "head_branch" => "main", "id" => 5_708_095_112, "status" => "in_progress"},
+        %{"conclusion" => "success", "head_branch" => "main", "id" => 5_697_406_496, "status" => "completed"},
+        %{"conclusion" => "success", "head_branch" => "main", "id" => 5_697_212_538, "status" => "completed"}
+      ]
+
+      assert filtered_ci_runs == expected_ci_runs
+    end
+  end
+
+  def ci_runs do
+    [
+      %{"conclusion" => nil, "id" => 5_708_095_112, "status" => "in_progress", "head_branch" => "main"},
+      %{"conclusion" => "success", "id" => 5_697_406_496, "status" => "completed", "head_branch" => "main"},
+      %{
+        "conclusion" => "success",
+        "id" => 5_686_226_403,
+        "status" => "completed",
+        "head_branch" => "something-other-than-main"
+      },
+      %{"conclusion" => "success", "id" => 5_697_212_538, "status" => "completed", "head_branch" => "main"}
+    ]
   end
 end

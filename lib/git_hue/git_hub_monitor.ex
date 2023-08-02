@@ -29,7 +29,14 @@ defmodule GitHue.GitHubMonitor do
   def handle_info(:check_github, %{light_id: light_id, bridge: bridge} = state) do
     Process.send_after(self(), :check_github, github_polling_interval_sec() * 1000)
 
-    latest_ci_run = GitHubAPI.get_latest_ci_run(github_owner_repo(), github_personal_access_token(), github_ci_job_name())
+    latest_ci_run =
+      GitHubAPI.get_latest_ci_run(
+        github_owner_repo(),
+        github_personal_access_token(),
+        github_ci_job_name(),
+        github_branch_name()
+      )
+
     color = GitHubAPI.light_color(latest_ci_run)
     Logger.info("Setting Hue color to #{inspect(color)}")
     HueAPI.set_color(bridge, light_id, color)
@@ -45,4 +52,5 @@ defmodule GitHue.GitHubMonitor do
   defp github_personal_access_token, do: Application.get_env(:git_hue, :github_personal_access_token)
   defp github_ci_job_name, do: Application.get_env(:git_hue, :github_ci_job_name)
   defp github_polling_interval_sec, do: Application.get_env(:git_hue, :github_polling_interval_sec)
+  defp github_branch_name, do: Application.get_env(:git_hue, :github_branch_name)
 end
