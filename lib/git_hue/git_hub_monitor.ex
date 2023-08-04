@@ -11,18 +11,69 @@ defmodule GitHue.GitHubMonitor do
 
   @impl true
   def init(_args) do
-    Process.send_after(self(), :check_github, 100)
+    {:ok, %{bridge: nil, light_id: nil}, {:continue, :initialize_bridge}}
+  end
 
-    bridge = HueAPI.get_bridge(hue_unique_identifier(), hue_bridge_ip_address())
-    Logger.info("bridge: #{inspect(bridge)}")
+  @impl true
+  def handle_continue(:initialize_bridge, state) do
+    IO.puts("-------------------------")
+    Logger.info("Locating Hue bridge...")
+
+    case HueAPI.discover_hue_bridge(hue_bridge_ip_address()) do
+      {:ok, bridge} ->
+        Logger.info("bridge: #{inspect(bridge)}")
+        {:noreply, Map.put(state, :bridge, bridge), {:continue, :authenticate_bridge}}
+
+      {:error, :no_bridges_found} ->
+        Logger.error("Unable to initialize Hue bridge. Terminating")
+        {:stop, :normal, state}
+    end
+  end
+
+  def handle_continue(:authenticate_bridge, %{bridge: bridge} = state) do
+    IO.puts("-------------------------")
+    Logger.info("Authenticating bridge...")
+
+    case HueAPI.temp_authenticate(:bad) do
+      # case HueSDK.Bridge.authenticate(bridge, hue_unique_identifier()) do
+      %{username: nil} ->
+        Logger.error("Unable to authenticate Hue bridge. Terminating")
+        # {:stop, :normal, state}
+        {:noreply, state, {:continue, :find_hue_light}}
+
+      %{username: _} = bridge ->
+        IO.puts("is bridge actually set to something here????")
+        IO.inspect(bridge, label: "bbbbbbbbbbbbbbbbbbbridge")
+        {:noreply, Map.put(state, :bridge, bridge), {:continue, :find_hue_light}}
+    end
+
+    # ==================================
+    # bridge = HueSDK.Bridge.authenticate(bridge, hue_unique_identifier())
+
+    # if bridge && bridge.username != nil do
+    #   {:noreply, Map.put(state, :bridge, bridge), {:continue, :find_hue_light}}
+    # else
+    #   Logger.error("Unable to authenticate Hue bridge. Terminating")
+    #   # {:stop, :normal, state}
+    #   {:noreply, state, {:continue, :find_hue_light}}
+    # end
+  end
+
+  def handle_continue(:find_hue_light, %{bridge: bridge} = state) do
+    IO.puts("-------------------------")
+    Logger.info("Finding Hue light with name \"#{hue_light_name()}\"...")
 
     {:ok, lights} = HueSDK.API.Lights.get_all_lights(bridge)
     {light_id, light_info} = HueAPI.find_light_by_name(lights, hue_light_name())
-    Logger.info("light_id: #{inspect(light_id)}")
-    Logger.info("light_info: #{inspect(light_info)}")
 
-    {:ok, %{bridge: bridge, light_id: light_id}}
-    # {:ok, %{}}
+    if light_id do
+      Logger.info("light_id: #{inspect(light_id)}")
+      Logger.info("light_info: #{inspect(light_info)}")
+      {:noreply, Map.put(state, :light_id, light_id), {:continue, :check_github}}
+    else
+      Logger.error("Unable to find Hue light with name \"#{hue_light_name()}\". Terminating")
+      {:stop, :normal, state}
+    end
   end
 
   @impl true

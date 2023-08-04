@@ -1,17 +1,57 @@
 defmodule GitHue.HueAPI do
   @moduledoc false
 
-  def get_bridge(hue_unique_identifier, hue_ip_address \\ nil) do
-    bridge =
-      if hue_ip_address do
-        {:manual_ip, [bridge]} = HueSDK.Discovery.discover(HueSDK.Discovery.ManualIP, ip_address: hue_ip_address)
-        bridge
-      else
-        {:nupnp, [bridge]} = HueSDK.Discovery.discover(HueSDK.Discovery.NUPNP)
-        bridge
-      end
+  def discover_hue_bridge(nil = _hue_ip_address) do
+    # case HueSDK.Discovery.discover(HueSDK.Discovery.NUPNP) do
+    #   {:nupnp, []} -> {:error, :no_bridges_found}
+    #   {:nupnp, [bridge]} -> {:ok, bridge}
+    # end
 
-    HueSDK.Bridge.authenticate(bridge, hue_unique_identifier)
+    {:ok,
+     %HueSDK.Bridge{
+       api_version: "1.59.0",
+       bridge_id: "ECB5FAFFFEA11E49",
+       datastore_version: "159",
+       host: "10.0.1.16",
+       mac: "ec:b5:fa:a1:1e:49",
+       model_id: "BSB002",
+       name: "Philips hue",
+       sw_version: "1959097030",
+       username: nil
+     }}
+  end
+
+  def discover_hue_bridge(hue_ip_address) do
+    {:manual_ip, [bridge]} = HueSDK.Discovery.discover(HueSDK.Discovery.ManualIP, ip_address: hue_ip_address)
+    {:ok, bridge}
+  end
+
+  def temp_authenticate(:good) do
+    %HueSDK.Bridge{
+      api_version: "1.59.0",
+      bridge_id: "ECB5FAFFFEA11E49",
+      datastore_version: "159",
+      host: "10.0.1.16",
+      mac: "ec:b5:fa:a1:1e:49",
+      model_id: "BSB002",
+      name: "Philips hue",
+      sw_version: "1959097030",
+      username: "KkRnlFmJiMVyLRU-4H2GjdtSQhWsOzYYNBA9VrWS"
+    }
+  end
+
+  def temp_authenticate(:bad) do
+    %HueSDK.Bridge{
+      api_version: "1.59.0",
+      bridge_id: "ECB5FAFFFEA11E49",
+      datastore_version: "159",
+      host: "10.0.1.16",
+      mac: "ec:b5:fa:a1:1e:49",
+      model_id: "BSB002",
+      name: "Philips hue",
+      sw_version: "1959097030",
+      username: nil
+    }
   end
 
   def set_color(bridge, light_id, :green) do
