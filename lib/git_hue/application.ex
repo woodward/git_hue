@@ -6,7 +6,12 @@ defmodule GitHue.Application do
 
   @impl true
   def start(_type, _args) do
-    children = if start_github_monitor_automicatically?(), do: [GitHue.GitHubMonitor], else: []
+    children =
+      if start_github_monitor_automicatically?() do
+        [%{id: GitHue.GitHubMonitor, start: {GitHue.GitHubMonitor, :start_link, []}, restart: :temporary}]
+      else
+        []
+      end
 
     opts = [strategy: :one_for_one, name: GitHue.Supervisor]
     Supervisor.start_link(children, opts)
