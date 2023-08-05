@@ -8,20 +8,7 @@ defmodule GitHue.HueAPITest do
   describe "connect_to_hue_bridge/3" do
     test "returns the bridge, light id, and light_info" do
       patch(HueSDK.Discovery, :discover, fn _type ->
-        {:nupnp,
-         [
-           %HueSDK.Bridge{
-             api_version: "1.59.0",
-             bridge_id: "ECB5FAFFFEA11E49",
-             datastore_version: "159",
-             host: "10.0.1.16",
-             mac: "ec:b5:fa:a1:1e:49",
-             model_id: "BSB002",
-             name: "Philips hue",
-             sw_version: "1959097030",
-             username: nil
-           }
-         ]}
+        {:nupnp, [bridge()]}
       end)
 
       patch(HueSDK.Bridge, :authenticate, fn bridge, _unique_identifier ->
@@ -35,18 +22,7 @@ defmodule GitHue.HueAPITest do
 
       {:ok, bridge, light_id, light_info} = HueAPI.connect_to_hue_bridge(nil, "hue-identifier#huesdk", "github")
 
-      assert bridge ==
-               %HueSDK.Bridge{
-                 api_version: "1.59.0",
-                 bridge_id: "ECB5FAFFFEA11E49",
-                 datastore_version: "159",
-                 host: "10.0.1.16",
-                 mac: "ec:b5:fa:a1:1e:49",
-                 model_id: "BSB002",
-                 name: "Philips hue",
-                 sw_version: "1959097030",
-                 username: "KkRnlFmJiMVyLRU-4H2GjdtSQhWsOzYYNBA9VrWS"
-               }
+      assert bridge == authenticated_bridge()
 
       assert light_id == "2"
 
@@ -77,36 +53,12 @@ defmodule GitHue.HueAPITest do
   describe "discover_hue_bridge" do
     test "returns when using discovery" do
       patch(HueSDK.Discovery, :discover, fn _type ->
-        {:nupnp,
-         [
-           %HueSDK.Bridge{
-             api_version: "1.59.0",
-             bridge_id: "ECB5FAFFFEA11E49",
-             datastore_version: "159",
-             host: "10.0.1.16",
-             mac: "ec:b5:fa:a1:1e:49",
-             model_id: "BSB002",
-             name: "Philips hue",
-             sw_version: "1959097030",
-             username: nil
-           }
-         ]}
+        {:nupnp, [bridge()]}
       end)
 
       {:ok, bridge} = HueAPI.discover_hue_bridge(nil)
 
-      assert bridge ==
-               %HueSDK.Bridge{
-                 api_version: "1.59.0",
-                 bridge_id: "ECB5FAFFFEA11E49",
-                 datastore_version: "159",
-                 host: "10.0.1.16",
-                 mac: "ec:b5:fa:a1:1e:49",
-                 model_id: "BSB002",
-                 name: "Philips hue",
-                 sw_version: "1959097030",
-                 username: nil
-               }
+      assert bridge == bridge()
     end
 
     test "no bridges found" do
@@ -125,21 +77,9 @@ defmodule GitHue.HueAPITest do
         Map.put(bridge, :username, username)
       end)
 
-      bridge = %HueSDK.Bridge{
-        api_version: "1.59.0",
-        bridge_id: "ECB5FAFFFEA11E49",
-        datastore_version: "159",
-        host: "10.0.1.16",
-        mac: "ec:b5:fa:a1:1e:49",
-        model_id: "BSB002",
-        name: "Philips hue",
-        sw_version: "1959097030",
-        username: nil
-      }
+      {:ok, bridge} = HueAPI.authenticate_with_bridge(bridge(), "some-unique-identifier#huesdk")
 
-      {:ok, bridge} = HueAPI.authenticate_with_bridge(bridge, "some-unique-identifier#huesdk")
-
-      assert bridge.username == "KkRnlFmJiMVyLRU-4H2GjdtSQhWsOzYYNBA9VrWS"
+      assert bridge.username == username()
     end
 
     test "returns an error if unable to authenticate" do
@@ -147,19 +87,7 @@ defmodule GitHue.HueAPITest do
         bridge
       end)
 
-      bridge = %HueSDK.Bridge{
-        api_version: "1.59.0",
-        bridge_id: "ECB5FAFFFEA11E49",
-        datastore_version: "159",
-        host: "10.0.1.16",
-        mac: "ec:b5:fa:a1:1e:49",
-        model_id: "BSB002",
-        name: "Philips hue",
-        sw_version: "1959097030",
-        username: nil
-      }
-
-      assert HueAPI.authenticate_with_bridge(bridge, "some-unique-identifier#huesdk") == {:error, :unable_to_authenticate}
+      assert HueAPI.authenticate_with_bridge(bridge(), "some-unique-identifier#huesdk") == {:error, :unable_to_authenticate}
     end
   end
 
@@ -169,21 +97,9 @@ defmodule GitHue.HueAPITest do
         {:ok, lights()}
       end)
 
-      bridge = %HueSDK.Bridge{
-        api_version: "1.59.0",
-        bridge_id: "ECB5FAFFFEA11E49",
-        datastore_version: "159",
-        host: "10.0.1.16",
-        mac: "ec:b5:fa:a1:1e:49",
-        model_id: "BSB002",
-        name: "Philips hue",
-        sw_version: "1959097030",
-        username: "KkRnlFmJiMVyLRU-4H2GjdtSQhWsOzYYNBA9VrWS"
-      }
-
       hue_light_name = "github"
 
-      {:ok, light_id, light_info} = HueAPI.find_hue_light(bridge, hue_light_name)
+      {:ok, light_id, light_info} = HueAPI.find_hue_light(authenticated_bridge(), hue_light_name)
 
       assert light_id == "2"
 
@@ -207,21 +123,8 @@ defmodule GitHue.HueAPITest do
         {:ok, lights()}
       end)
 
-      bridge = %HueSDK.Bridge{
-        api_version: "1.59.0",
-        bridge_id: "ECB5FAFFFEA11E49",
-        datastore_version: "159",
-        host: "10.0.1.16",
-        mac: "ec:b5:fa:a1:1e:49",
-        model_id: "BSB002",
-        name: "Philips hue",
-        sw_version: "1959097030",
-        username: "KkRnlFmJiMVyLRU-4H2GjdtSQhWsOzYYNBA9VrWS"
-      }
-
       hue_light_name = "not-in-light-data"
-
-      assert HueAPI.find_hue_light(bridge, hue_light_name) == {:error, :unable_to_locate_light}
+      assert HueAPI.find_hue_light(authenticated_bridge(), hue_light_name) == {:error, :unable_to_locate_light}
     end
   end
 
@@ -244,6 +147,26 @@ defmodule GitHue.HueAPITest do
                "xy" => [0.1687, 0.6482]
              }
     end
+  end
+
+  defp bridge do
+    %HueSDK.Bridge{
+      api_version: "1.59.0",
+      bridge_id: "ECB5FAFFFEA11E49",
+      datastore_version: "159",
+      host: "10.0.1.16",
+      mac: "ec:b5:fa:a1:1e:49",
+      model_id: "BSB002",
+      name: "Philips hue",
+      sw_version: "1959097030",
+      username: nil
+    }
+  end
+
+  defp username, do: "KkRnlFmJiMVyLRU-4H2GjdtSQhWsOzYYNBA9VrWS"
+
+  defp authenticated_bridge do
+    Map.put(bridge(), :username, username())
   end
 
   defp lights do
