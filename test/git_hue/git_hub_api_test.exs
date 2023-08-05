@@ -3,6 +3,96 @@ defmodule GitHue.GitHubAPITest do
   doctest GitHue
 
   alias GitHue.GitHubAPI
+  use Patch
+
+  describe "query_github_api/2" do
+    test "returns the GitHub runs if successful" do
+      patch(Req, :get!, fn _req, _params ->
+        response_body = File.read!("test/fixtures/github_response.json") |> Jason.decode!()
+
+        %Req.Response{
+          private: %{},
+          status: 200,
+          body: response_body,
+          headers: [
+            {"server", "GitHub.com"}
+          ]
+        }
+      end)
+
+      {:ok, workflow_runs} = GitHubAPI.query_github_api("my-org/my-repo", "my-personal-access-token")
+      assert length(workflow_runs) == 30
+    end
+
+    test "returns an error if unsuccessful" do
+      patch(Req, :get!, fn _req, _params ->
+        %Req.Response{
+          private: %{},
+          status: 404,
+          headers: [
+            {"server", "GitHub.com"}
+          ]
+        }
+      end)
+
+      {:error, error_response} = GitHubAPI.query_github_api("my-org/my-repo-DOES-NOT-EXIST", "my-personal-access-token")
+      assert error_response == %Req.Response{status: 404, headers: [{"server", "GitHub.com"}], body: "", private: %{}}
+    end
+  end
+
+  describe "get_latest_ci_run/4" do
+    test "returns the latest CI run as a map" do
+      patch(Req, :get!, fn _req, _params ->
+        response_body = File.read!("test/fixtures/github_response.json") |> Jason.decode!()
+
+        %Req.Response{
+          private: %{},
+          status: 200,
+          body: response_body,
+          headers: [
+            {"server", "GitHub.com"}
+          ]
+        }
+      end)
+
+      github_owner_repo = "mechanical-orchard/omni"
+      github_personal_access_token = "some-valid-token"
+      github_ci_job_name = "Omni CI"
+      github_branch_name = "main"
+
+      {:ok, latest_ci_run} =
+        GitHubAPI.get_latest_ci_run(github_owner_repo, github_personal_access_token, github_ci_job_name, github_branch_name)
+
+      assert latest_ci_run == %{
+               "conclusion" => nil,
+               "head_branch" => "main",
+               "id" => 5_708_095_112,
+               "status" => "in_progress"
+             }
+    end
+
+    test "returns an error if unable to retrieve the latest CI runs" do
+      patch(Req, :get!, fn _req, _params ->
+        %Req.Response{
+          private: %{},
+          status: 404,
+          headers: [
+            {"server", "GitHub.com"}
+          ]
+        }
+      end)
+
+      github_owner_repo = "mechanical-orchard/omni"
+      github_personal_access_token = "some-valid-token"
+      github_ci_job_name = "Omni CI"
+      github_branch_name = "main"
+
+      {:error, reason} =
+        GitHubAPI.get_latest_ci_run(github_owner_repo, github_personal_access_token, github_ci_job_name, github_branch_name)
+
+      assert reason == %Req.Response{status: 404, headers: [{"server", "GitHub.com"}], body: "", private: %{}}
+    end
+  end
 
   describe "extract_ci_runs" do
     test "gets the ci runs from all of the workflow runs" do

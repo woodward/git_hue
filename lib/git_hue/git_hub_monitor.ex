@@ -32,7 +32,7 @@ defmodule GitHue.GitHubMonitor do
 
   @impl true
   def handle_info(:check_github, %{light_id: light_id, bridge: bridge} = state) do
-    latest_ci_run =
+    {:ok, latest_ci_run} =
       GitHubAPI.get_latest_ci_run(
         github_owner_repo(),
         github_personal_access_token(),

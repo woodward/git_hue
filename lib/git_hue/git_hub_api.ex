@@ -2,22 +2,34 @@ defmodule GitHue.GitHubAPI do
   @moduledoc false
 
   def get_latest_ci_run(github_owner_repo, github_personal_access_token, github_ci_job_name, github_branch_name) do
-    query_github_api(github_owner_repo, github_personal_access_token)
-    |> extract_ci_runs(github_ci_job_name)
-    |> extract_runs_for_branch(github_branch_name)
-    |> List.first()
+    case query_github_api(github_owner_repo, github_personal_access_token) do
+      {:ok, workflow_runs} ->
+        latest_ci_run =
+          workflow_runs
+          |> extract_ci_runs(github_ci_job_name)
+          |> extract_runs_for_branch(github_branch_name)
+          |> List.first()
+
+        {:ok, latest_ci_run}
+
+      {:error, error_reason} ->
+        {:error, error_reason}
+    end
   end
 
   def query_github_api(github_owner_repo, github_personal_access_token) do
     req = Req.new(base_url: "https://api.github.com")
 
-    Req.get!(req,
-      url: "/repos/#{github_owner_repo}/actions/runs",
-      headers: [
-        {"Authorization", "Token #{github_personal_access_token}"},
-        {"Accept", "application/vnd.github.v3+json"}
-      ]
-    ).body["workflow_runs"]
+    case Req.get!(req,
+           url: "/repos/#{github_owner_repo}/actions/runs",
+           headers: [
+             {"Authorization", "Token #{github_personal_access_token}"},
+             {"Accept", "application/vnd.github.v3+json"}
+           ]
+         ) do
+      %Req.Response{status: 200, body: body} -> {:ok, body["workflow_runs"]}
+      %Req.Response{} = error_response -> {:error, error_response}
+    end
   end
 
   def extract_ci_runs(workflow_runs, name_of_ci_job) do
