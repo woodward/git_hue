@@ -128,6 +128,42 @@ defmodule GitHue.HueAPITest do
     end
   end
 
+  describe "set_color" do
+    test "returns success when able to set the light's color" do
+      patch(HueSDK.API.Lights, :set_light_state, fn _bridge, _light_id, state ->
+        assert state == %{on: true, hue: 27306, sat: 254, bri: 254}
+
+        {:ok,
+         [
+           %{"success" => %{"/lights/2/state/on" => true}},
+           %{"success" => %{"/lights/2/state/hue" => 27306}},
+           %{"success" => %{"/lights/2/state/sat" => 254}},
+           %{"success" => %{"/lights/2/state/bri" => 254}}
+         ]}
+      end)
+
+      response = HueAPI.set_color(authenticated_bridge(), "2", :green)
+
+      assert response ==
+               {:ok,
+                [
+                  %{"success" => %{"/lights/2/state/on" => true}},
+                  %{"success" => %{"/lights/2/state/hue" => 27306}},
+                  %{"success" => %{"/lights/2/state/sat" => 254}},
+                  %{"success" => %{"/lights/2/state/bri" => 254}}
+                ]}
+    end
+
+    test "returns an error when unable to set the color of the light" do
+      patch(HueSDK.API.Lights, :set_light_state, fn _bridge, _light_id, _state ->
+        {:error, %Mint.TransportError{reason: :timeout}}
+      end)
+
+      response = HueAPI.set_color(authenticated_bridge(), "2", :green)
+      assert response == {:error, %Mint.TransportError{reason: :timeout}}
+    end
+  end
+
   describe "find_light_by_name" do
     test "gets the ci runs from all of the workflow runs" do
       {light_id, light_info} = HueAPI.find_light_by_name(lights(), "github")

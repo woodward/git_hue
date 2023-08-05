@@ -32,8 +32,6 @@ defmodule GitHue.GitHubMonitor do
 
   @impl true
   def handle_info(:check_github, %{light_id: light_id, bridge: bridge} = state) do
-    Process.send_after(self(), :check_github, github_polling_interval_sec() * 1000)
-
     latest_ci_run =
       GitHubAPI.get_latest_ci_run(
         github_owner_repo(),
@@ -44,9 +42,16 @@ defmodule GitHue.GitHubMonitor do
 
     color = GitHubAPI.light_color(latest_ci_run)
     Logger.info("Setting Hue color to #{inspect(color)}")
-    HueAPI.set_color(bridge, light_id, color)
 
-    {:noreply, state}
+    case HueAPI.set_color(bridge, light_id, color) do
+      {:ok, _message} ->
+        Process.send_after(self(), :check_github, github_polling_interval_sec() * 1000)
+        {:noreply, state}
+
+      {:error, error_message} ->
+        Logger.error("Unable to set the color of the light. Error: #{inspect(error_message)}.  Terminating.")
+        {:stop, :normal, state}
+    end
   end
 
   defp hue_unique_identifier, do: Application.get_env(:git_hue, :hue_unique_identifier)
