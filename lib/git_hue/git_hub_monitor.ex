@@ -20,9 +20,9 @@ defmodule GitHue.GitHubMonitor do
       {:ok, bridge, light_id, _light_info} ->
         Logger.info("Connected to Hue bridge: #{inspect(bridge)}")
         Logger.info("Found Hue light: #{inspect(light_id)}")
-
         state = state |> Map.put(:bridge, bridge) |> Map.put(:light_id, light_id)
-        {:ok, state, {:continue, :check_github}}
+        Process.send_after(self(), :check_github, 1)
+        {:noreply, state}
 
       {:error, error} ->
         Logger.error("Unable to initialize Hue bridge. Terminating. Reason: #{error}")
