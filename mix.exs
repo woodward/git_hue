@@ -24,6 +24,7 @@ defmodule GitHue.MixProject do
   defp deps do
     [
       {:hue_sdk, "~> 0.1.0"},
+      {:patch, "~> 0.12.0", only: [:test]},
       {:req, "~> 0.3.0"}
     ]
   end
