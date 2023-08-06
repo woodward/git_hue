@@ -177,6 +177,14 @@ defmodule GitHue.GitHubAPITest do
       run = %{"conclusion" => nil, "id" => 5_721_332_317, "status" => "queued"}
       assert private(GitHubAPI.light_color(run)) == :unchanged
     end
+
+    test "raises an error if unable to determine the color of the run" do
+      run = %{"conclusion" => "unknown", "id" => 5_721_332_317, "status" => "unknown"}
+
+      assert_raise RuntimeError, fn ->
+        assert private(GitHubAPI.light_color(run)) == :unchanged
+      end
+    end
   end
 
   describe "extract_runs_for_branch" do
