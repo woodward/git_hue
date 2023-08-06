@@ -2,17 +2,11 @@ defmodule GitHue.GitHubAPI do
   @moduledoc false
 
   def get_color_of_latest_ci_run(github_owner_repo, github_personal_access_token, github_ci_job_name, github_branch_name) do
-    case query_github_api(github_owner_repo, github_personal_access_token) do
-      {:ok, workflow_runs} ->
-        color =
-          workflow_runs
-          |> extract_ci_runs(github_ci_job_name)
-          |> extract_runs_for_branch(github_branch_name)
-          |> List.first()
-          |> light_color()
-
-        {:ok, color}
-
+    with {:ok, workflow_runs} <- query_github_api(github_owner_repo, github_personal_access_token),
+         {:ok, ci_runs} <- workflow_runs |> extract_ci_runs(github_ci_job_name),
+         color <- ci_runs |> extract_runs_for_branch(github_branch_name) |> List.first() |> light_color() do
+      {:ok, color}
+    else
       {:error, error_reason} ->
         {:error, error_reason}
     end
@@ -34,10 +28,18 @@ defmodule GitHue.GitHubAPI do
   end
 
   defp extract_ci_runs(workflow_runs, name_of_ci_job) do
-    workflow_runs
-    |> Enum.filter(&(&1["name"] == name_of_ci_job))
-    |> Enum.map(&Map.take(&1, ["id", "status", "conclusion", "head_branch"]))
-    |> Enum.sort(&(&1["id"] > &2["id"]))
+    case workflow_runs |> Enum.filter(&(&1["name"] == name_of_ci_job)) do
+      [] ->
+        {:error, "No GitHub workflow runs for job name \"#{name_of_ci_job}\""}
+
+      ci_job_workflow_runs ->
+        transformed_runs =
+          ci_job_workflow_runs
+          |> Enum.map(&Map.take(&1, ["id", "status", "conclusion", "head_branch"]))
+          |> Enum.sort(&(&1["id"] > &2["id"]))
+
+        {:ok, transformed_runs}
+    end
   end
 
   defp extract_runs_for_branch(workflow_runs, ""), do: workflow_runs

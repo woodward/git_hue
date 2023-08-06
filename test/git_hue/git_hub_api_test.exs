@@ -118,7 +118,7 @@ defmodule GitHue.GitHubAPITest do
       workflow_runs = Map.get(github_json, "workflow_runs")
       assert length(workflow_runs) == 30
 
-      ci_runs = private(GitHubAPI.extract_ci_runs(workflow_runs, "Omni CI"))
+      {:ok, ci_runs} = private(GitHubAPI.extract_ci_runs(workflow_runs, "Omni CI"))
       assert length(ci_runs) == 10
 
       expected_ci_runs = [
@@ -140,6 +140,15 @@ defmodule GitHue.GitHubAPITest do
       ]
 
       assert ci_runs == expected_ci_runs
+    end
+
+    test "returns an error if there are no workflow runs for this name" do
+      github_json = File.read!("test/fixtures/github_response.json") |> Jason.decode!()
+      workflow_runs = Map.get(github_json, "workflow_runs")
+      assert length(workflow_runs) == 30
+
+      assert private(GitHubAPI.extract_ci_runs(workflow_runs, "NO WORKFLOW RUNS FOR THIS NAME")) ==
+               {:error, "No GitHub workflow runs for job name \"NO WORKFLOW RUNS FOR THIS NAME\""}
     end
   end
 
