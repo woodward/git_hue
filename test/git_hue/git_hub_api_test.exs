@@ -1,4 +1,5 @@
 defmodule GitHue.GitHubAPITest do
+  @moduledoc false
   use ExUnit.Case
   doctest GitHue
 

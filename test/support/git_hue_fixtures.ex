@@ -1,4 +1,6 @@
 defmodule GitHue.GitHueFixtures do
+  @moduledoc false
+
   def bridge do
     %HueSDK.Bridge{
       api_version: "1.59.0",
