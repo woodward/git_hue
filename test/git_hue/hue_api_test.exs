@@ -52,12 +52,17 @@ defmodule GitHue.HueAPITest do
   end
 
   describe "discover_hue_bridge" do
+    setup do
+      expose(HueAPI, discover_hue_bridge: 1)
+      :ok
+    end
+
     test "returns when using discovery" do
       patch(HueSDK.Discovery, :discover, fn _type ->
         {:nupnp, [bridge()]}
       end)
 
-      {:ok, bridge} = HueAPI.discover_hue_bridge(nil)
+      {:ok, bridge} = private(HueAPI.discover_hue_bridge(nil))
 
       assert bridge == bridge()
     end
@@ -67,18 +72,23 @@ defmodule GitHue.HueAPITest do
         {:nupnp, []}
       end)
 
-      assert(HueAPI.discover_hue_bridge(nil) == {:error, :no_bridges_found})
+      assert private(HueAPI.discover_hue_bridge(nil)) == {:error, :no_bridges_found}
     end
   end
 
   describe "authenticate_with_bridge" do
+    setup do
+      expose(HueAPI, authenticate_with_bridge: 2)
+      :ok
+    end
+
     test "returns the bridge with a username if successful" do
       patch(HueSDK.Bridge, :authenticate, fn bridge, _unique_identifier ->
         username = "KkRnlFmJiMVyLRU-4H2GjdtSQhWsOzYYNBA9VrWS"
         Map.put(bridge, :username, username)
       end)
 
-      {:ok, bridge} = HueAPI.authenticate_with_bridge(bridge(), "some-unique-identifier#huesdk")
+      {:ok, bridge} = private(HueAPI.authenticate_with_bridge(bridge(), "some-unique-identifier#huesdk"))
 
       assert bridge.username == username()
     end
@@ -88,11 +98,17 @@ defmodule GitHue.HueAPITest do
         bridge
       end)
 
-      assert HueAPI.authenticate_with_bridge(bridge(), "some-unique-identifier#huesdk") == {:error, :unable_to_authenticate}
+      assert private(HueAPI.authenticate_with_bridge(bridge(), "some-unique-identifier#huesdk")) ==
+               {:error, :unable_to_authenticate}
     end
   end
 
   describe "find_hue_light" do
+    setup do
+      expose(HueAPI, find_hue_light: 2)
+      :ok
+    end
+
     test "returns the light" do
       patch(HueSDK.API.Lights, :get_all_lights, fn _bridge ->
         {:ok, lights()}
@@ -100,7 +116,7 @@ defmodule GitHue.HueAPITest do
 
       hue_light_name = "github"
 
-      {:ok, light_id, light_info} = HueAPI.find_hue_light(authenticated_bridge(), hue_light_name)
+      {:ok, light_id, light_info} = private(HueAPI.find_hue_light(authenticated_bridge(), hue_light_name))
 
       assert light_id == "2"
 
@@ -125,7 +141,7 @@ defmodule GitHue.HueAPITest do
       end)
 
       hue_light_name = "not-in-light-data"
-      assert HueAPI.find_hue_light(authenticated_bridge(), hue_light_name) == {:error, :unable_to_locate_light}
+      assert private(HueAPI.find_hue_light(authenticated_bridge(), hue_light_name)) == {:error, :unable_to_locate_light}
     end
   end
 
@@ -166,8 +182,13 @@ defmodule GitHue.HueAPITest do
   end
 
   describe "find_light_by_name" do
+    setup do
+      expose(HueAPI, find_light_by_name: 2)
+      :ok
+    end
+
     test "gets the ci runs from all of the workflow runs" do
-      {light_id, light_info} = HueAPI.find_light_by_name(lights(), "github")
+      {light_id, light_info} = private(HueAPI.find_light_by_name(lights(), "github"))
       assert light_id == "2"
 
       assert light_info["state"] == %{
