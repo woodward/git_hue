@@ -12,6 +12,6 @@ config :git_hue,
   github_polling_interval_sec: 30,
   github_personal_access_token: "github-personal-access-token",
   github_owner_repo: "my-owner/my-repo",
-  github_ci_job_name: "CI Job",
+  github_ci_job_name: "Omni CI",
   github_branch_name: "main",
   start_github_monitor_automatically?: false

@@ -11,7 +11,7 @@ defmodule GitHue.GitHubMonitor do
 
   @impl true
   def init(_args) do
-    {:ok, %{bridge: nil, light_id: nil}, {:continue, :initialize_bridge}}
+    {:ok, %{bridge: nil, light_id: nil, color: nil}, {:continue, :initialize_bridge}}
   end
 
   @impl true
@@ -43,7 +43,7 @@ defmodule GitHue.GitHubMonitor do
          {:ok, _message} <- HueAPI.set_color(bridge, light_id, color) do
       Logger.info("Set the Hue color to #{inspect(color)}")
       Process.send_after(self(), :check_github, github_polling_interval_sec() * 1000)
-      {:noreply, state}
+      {:noreply, Map.put(state, :color, color)}
     else
       {:error, error_message} ->
         Logger.error("Unable to set the color of the light. Error: #{inspect(error_message)}.  Terminating.")
