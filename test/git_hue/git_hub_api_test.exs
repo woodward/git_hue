@@ -6,6 +6,11 @@ defmodule GitHue.GitHubAPITest do
   use Patch
 
   describe "query_github_api/2" do
+    setup do
+      expose(GitHubAPI, query_github_api: 2)
+      :ok
+    end
+
     test "returns the GitHub runs if successful" do
       patch(Req, :get!, fn _req, _params ->
         response_body = File.read!("test/fixtures/github_response.json") |> Jason.decode!()
@@ -20,7 +25,7 @@ defmodule GitHue.GitHubAPITest do
         }
       end)
 
-      {:ok, workflow_runs} = GitHubAPI.query_github_api("my-org/my-repo", "my-personal-access-token")
+      {:ok, workflow_runs} = private(GitHubAPI.query_github_api("my-org/my-repo", "my-personal-access-token"))
       assert length(workflow_runs) == 30
     end
 
@@ -35,7 +40,9 @@ defmodule GitHue.GitHubAPITest do
         }
       end)
 
-      {:error, error_response} = GitHubAPI.query_github_api("my-org/my-repo-DOES-NOT-EXIST", "my-personal-access-token")
+      {:error, error_response} =
+        private(GitHubAPI.query_github_api("my-org/my-repo-DOES-NOT-EXIST", "my-personal-access-token"))
+
       assert error_response == %Req.Response{status: 404, headers: [{"server", "GitHub.com"}], body: "", private: %{}}
     end
   end
@@ -100,12 +107,17 @@ defmodule GitHue.GitHubAPITest do
   end
 
   describe "extract_ci_runs" do
+    setup do
+      expose(GitHubAPI, extract_ci_runs: 2)
+      :ok
+    end
+
     test "gets the ci runs from all of the workflow runs" do
       github_json = File.read!("test/fixtures/github_response.json") |> Jason.decode!()
       workflow_runs = Map.get(github_json, "workflow_runs")
       assert length(workflow_runs) == 30
 
-      ci_runs = workflow_runs |> GitHubAPI.extract_ci_runs("Omni CI")
+      ci_runs = private(GitHubAPI.extract_ci_runs(workflow_runs, "Omni CI"))
       assert length(ci_runs) == 10
 
       expected_ci_runs = [
@@ -131,37 +143,47 @@ defmodule GitHue.GitHubAPITest do
   end
 
   describe "light_color" do
+    setup do
+      expose(GitHubAPI, light_color: 1)
+      :ok
+    end
+
     test "returns :green if a successful conclusion" do
       run = %{"conclusion" => "success", "id" => 5_697_406_496, "status" => "completed"}
-      assert GitHubAPI.light_color(run) == :green
+      assert private(GitHubAPI.light_color(run)) == :green
     end
 
     test "returns :yellow if the job is still in progress" do
       run = %{"conclusion" => nil, "id" => 5_708_095_112, "status" => "in_progress"}
-      assert GitHubAPI.light_color(run) == :yellow
+      assert private(GitHubAPI.light_color(run)) == :yellow
     end
 
     test "returns :red if the job has failed" do
       run = %{"conclusion" => "failure", "id" => 5_697_406_496, "status" => "completed"}
-      assert GitHubAPI.light_color(run) == :red
+      assert private(GitHubAPI.light_color(run)) == :red
     end
 
     test "returns :unchanged if the job is queued" do
       run = %{"conclusion" => nil, "id" => 5_721_332_317, "status" => "queued"}
-      assert GitHubAPI.light_color(run) == :unchanged
+      assert private(GitHubAPI.light_color(run)) == :unchanged
     end
   end
 
   describe "extract_runs_for_branch" do
+    setup do
+      expose(GitHubAPI, extract_runs_for_branch: 2)
+      :ok
+    end
+
     test "by default gets the ci runs from all of the workflow runs" do
-      filtered_ci_runs = ci_runs() |> GitHubAPI.extract_runs_for_branch("")
+      filtered_ci_runs = private(GitHubAPI.extract_runs_for_branch(ci_runs(), ""))
       assert length(filtered_ci_runs) == 4
       expected_ci_runs = ci_runs()
       assert filtered_ci_runs == expected_ci_runs
     end
 
     test "by default gets the ci runs from all of the workflow runs - also works for nil" do
-      filtered_ci_runs = ci_runs() |> GitHubAPI.extract_runs_for_branch(nil)
+      filtered_ci_runs = private(GitHubAPI.extract_runs_for_branch(ci_runs(), nil))
       assert length(filtered_ci_runs) == 4
       expected_ci_runs = ci_runs()
       assert filtered_ci_runs == expected_ci_runs
@@ -169,7 +191,7 @@ defmodule GitHue.GitHubAPITest do
     end
 
     test "gets only the results for a particular branch" do
-      filtered_ci_runs = ci_runs() |> GitHubAPI.extract_runs_for_branch("main")
+      filtered_ci_runs = private(GitHubAPI.extract_runs_for_branch(ci_runs(), "main"))
       assert length(filtered_ci_runs) == 3
 
       expected_ci_runs = [
