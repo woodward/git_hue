@@ -68,12 +68,30 @@ defmodule GitHue.HueAPITest do
       assert bridge == bridge()
     end
 
-    test "no bridges found" do
+    test "no bridges found using discovery" do
       patch(HueSDK.Discovery, :discover, fn _type ->
         {:nupnp, []}
       end)
 
       assert private(HueAPI.discover_hue_bridge(nil)) == {:error, :no_bridges_found}
+    end
+
+    test "returns when using ip address" do
+      patch(HueSDK.Discovery, :discover, fn HueSDK.Discovery.ManualIP, _ip_address ->
+        {:manual_ip, [bridge()]}
+      end)
+
+      {:ok, bridge} = private(HueAPI.discover_hue_bridge("10.0.1.16"))
+
+      assert bridge == bridge()
+    end
+
+    test "returns an error when using ip address and not found" do
+      patch(HueSDK.Discovery, :discover, fn HueSDK.Discovery.ManualIP, _ip_address ->
+        {:error, %Mint.TransportError{reason: :timeout}}
+      end)
+
+      assert private(HueAPI.discover_hue_bridge("10.0.1.16")) == {:error, %Mint.TransportError{reason: :timeout}}
     end
   end
 

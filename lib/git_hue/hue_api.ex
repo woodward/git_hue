@@ -35,8 +35,10 @@ defmodule GitHue.HueAPI do
   end
 
   defp discover_hue_bridge(hue_ip_address) do
-    {:manual_ip, [bridge]} = HueSDK.Discovery.discover(HueSDK.Discovery.ManualIP, ip_address: hue_ip_address)
-    {:ok, bridge}
+    case HueSDK.Discovery.discover(HueSDK.Discovery.ManualIP, ip_address: hue_ip_address) do
+      {:manual_ip, [bridge]} -> {:ok, bridge}
+      {:error, reason} -> {:error, reason}
+    end
   end
 
   defp authenticate_with_bridge(bridge, hue_unique_identifier) do
