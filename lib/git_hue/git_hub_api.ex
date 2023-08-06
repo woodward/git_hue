@@ -1,16 +1,17 @@
 defmodule GitHue.GitHubAPI do
   @moduledoc false
 
-  def get_latest_ci_run(github_owner_repo, github_personal_access_token, github_ci_job_name, github_branch_name) do
+  def get_color_of_latest_ci_run(github_owner_repo, github_personal_access_token, github_ci_job_name, github_branch_name) do
     case query_github_api(github_owner_repo, github_personal_access_token) do
       {:ok, workflow_runs} ->
-        latest_ci_run =
+        color =
           workflow_runs
           |> extract_ci_runs(github_ci_job_name)
           |> extract_runs_for_branch(github_branch_name)
           |> List.first()
+          |> light_color()
 
-        {:ok, latest_ci_run}
+        {:ok, color}
 
       {:error, error_reason} ->
         {:error, error_reason}

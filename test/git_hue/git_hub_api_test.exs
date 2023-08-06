@@ -40,7 +40,7 @@ defmodule GitHue.GitHubAPITest do
     end
   end
 
-  describe "get_latest_ci_run/4" do
+  describe "get_color_of_latest_ci_run/4" do
     test "returns the latest CI run as a map" do
       patch(Req, :get!, fn _req, _params ->
         response_body = File.read!("test/fixtures/github_response.json") |> Jason.decode!()
@@ -60,15 +60,15 @@ defmodule GitHue.GitHubAPITest do
       github_ci_job_name = "Omni CI"
       github_branch_name = "main"
 
-      {:ok, latest_ci_run} =
-        GitHubAPI.get_latest_ci_run(github_owner_repo, github_personal_access_token, github_ci_job_name, github_branch_name)
+      {:ok, color} =
+        GitHubAPI.get_color_of_latest_ci_run(
+          github_owner_repo,
+          github_personal_access_token,
+          github_ci_job_name,
+          github_branch_name
+        )
 
-      assert latest_ci_run == %{
-               "conclusion" => nil,
-               "head_branch" => "main",
-               "id" => 5_708_095_112,
-               "status" => "in_progress"
-             }
+      assert color == :yellow
     end
 
     test "returns an error if unable to retrieve the latest CI runs" do
@@ -88,7 +88,12 @@ defmodule GitHue.GitHubAPITest do
       github_branch_name = "main"
 
       {:error, reason} =
-        GitHubAPI.get_latest_ci_run(github_owner_repo, github_personal_access_token, github_ci_job_name, github_branch_name)
+        GitHubAPI.get_color_of_latest_ci_run(
+          github_owner_repo,
+          github_personal_access_token,
+          github_ci_job_name,
+          github_branch_name
+        )
 
       assert reason == %Req.Response{status: 404, headers: [{"server", "GitHub.com"}], body: "", private: %{}}
     end

@@ -32,14 +32,13 @@ defmodule GitHue.GitHubMonitor do
 
   @impl true
   def handle_info(:check_github, %{light_id: light_id, bridge: bridge} = state) do
-    with {:ok, latest_ci_run} <-
-           GitHubAPI.get_latest_ci_run(
+    with {:ok, color} <-
+           GitHubAPI.get_color_of_latest_ci_run(
              github_owner_repo(),
              github_personal_access_token(),
              github_ci_job_name(),
              github_branch_name()
            ),
-         color <- GitHubAPI.light_color(latest_ci_run),
          {:ok, _message} <- HueAPI.set_color(bridge, light_id, color) do
       Logger.info("Set the Hue color to #{inspect(color)}")
       Process.send_after(self(), :check_github, github_polling_interval_sec() * 1000)
